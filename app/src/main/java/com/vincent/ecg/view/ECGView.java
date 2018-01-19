@@ -120,7 +120,7 @@ public class ECGView extends View {
         path.reset();
         //移动到起点 这里从中部开始画
         path.moveTo(0,baseLine);
-        for (int i = 0;i<datas.size()/10;i++){
+        for (int i = 0;i<datas.size()/5;i++){
             Log.d(TAG, "drawData: "+dotWidth *i+","+valuesToY(datas.get(i)));
             path.lineTo(dotWidth * i,valuesToY(datas.get(i)));
             canvas.drawPath(path,mPaint);
@@ -227,7 +227,7 @@ public class ECGView extends View {
 //                scrollTo((int) (event.getX()-touchX),0);
 //                invalidate(0,0,(int) viewWidth,(int)viewHeight);
                 offsetLeftAndRight((int) (event.getX()-touchX));
-                invalidate(0,0,(int) viewWidth,(int)viewHeight);
+                invalidate();
                 break;
             case MotionEvent.ACTION_UP:
 
@@ -243,7 +243,7 @@ public class ECGView extends View {
      */
     public void setDatas(List<Integer> datas) {
         this.datas = datas;
-        invalidate(0,0,(int) viewWidth,(int)viewHeight);
+        invalidate();
     }
 }
 
