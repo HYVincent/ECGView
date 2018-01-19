@@ -227,7 +227,7 @@ public class ECGView extends View {
 //                scrollTo((int) (event.getX()-touchX),0);
 //                invalidate(0,0,(int) viewWidth,(int)viewHeight);
                 offsetLeftAndRight((int) (event.getX()-touchX));
-                invalidate();
+                invalidate(0,0,(int) viewWidth,(int)viewHeight);
                 break;
             case MotionEvent.ACTION_UP:
 
@@ -243,7 +243,7 @@ public class ECGView extends View {
      */
     public void setDatas(List<Integer> datas) {
         this.datas = datas;
-        invalidate();
+        invalidate(0,0,(int) viewWidth,(int)viewHeight);
     }
 }
 
