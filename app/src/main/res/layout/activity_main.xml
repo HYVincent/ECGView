@@ -7,7 +7,6 @@
     tools:context="com.vincent.ecg.MainActivity">
 
     <com.vincent.ecg.view.ECGView
-        android:hardwareAccelerated="true"
         android:id="@+id/ecg_view"
         android:layout_width="match_parent"
         android:layout_height="300dp" />

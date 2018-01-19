@@ -10,6 +10,7 @@ import android.graphics.PorterDuffXfermode;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -96,19 +97,19 @@ public class ECGView extends View {
         super.onSizeChanged(w, h, oldw, oldh);
     }
 
-    private boolean isDrawBg = false;
-    private boolean isDrawBaseLine = false;
+//    private boolean isDrawBg = false;
+//    private boolean isDrawBaseLine = false;
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if(!isDrawBg){
+//        if(!isDrawBg){
             drawBg(canvas);
-        }
-       if(!isDrawBaseLine){
-           //画基准线
-           drawBaseLine(canvas);
-       }
+//        }
+//        if(!isDrawBaseLine){
+            //画基准线
+            drawBaseLine(canvas);
+//        }
         //画数据
         drawData(canvas);
     }
@@ -145,7 +146,7 @@ public class ECGView extends View {
     private void drawBaseLine(Canvas canvas) {
         //画基线
         canvas.drawLine(0,baseLine,viewWidth,baseLine,mBaseLine);
-        isDrawBaseLine = true;
+//        isDrawBaseLine = true;
     }
 
     /**
@@ -154,15 +155,15 @@ public class ECGView extends View {
      */
     private void drawBg(Canvas canvas) {
         //先画横向的线 画上部分
-       for (float i = baseLine;i>0;i--){
-           if(i % 5 == 0){
-               mBgPaint.setStrokeWidth(bgLineWidth * 2);
-           }else {
-               mBgPaint.setStrokeWidth(bgLineWidth);
-           }
-           canvas.drawLine(0,baseLine - smallGridWidth * i,viewWidth,baseLine - smallGridWidth * i,mBgPaint);
-       }
-       //画下部分
+        for (float i = baseLine;i>0;i--){
+            if(i % 5 == 0){
+                mBgPaint.setStrokeWidth(bgLineWidth * 2);
+            }else {
+                mBgPaint.setStrokeWidth(bgLineWidth);
+            }
+            canvas.drawLine(0,baseLine - smallGridWidth * i,viewWidth,baseLine - smallGridWidth * i,mBgPaint);
+        }
+        //画下部分
         for (float i = 0;i<viewHeight;i++){
             if(i % 5 == 0){
                 mBgPaint.setStrokeWidth(bgLineWidth * 2);
@@ -172,7 +173,7 @@ public class ECGView extends View {
             canvas.drawLine(0,baseLine + smallGridWidth * i,viewWidth,baseLine + smallGridWidth * i,mBgPaint);
         }
         //画纵向的线 从零开始就可以了
-      for(int i = 0; i<lineNumberZ;i++){
+        for(int i = 0; i<lineNumberZ;i++){
             if(i % 5 == 0){
                 mBgPaint.setStrokeWidth(bgLineWidth * 2);
             }else {
@@ -180,7 +181,7 @@ public class ECGView extends View {
             }
             canvas.drawLine(i * smallGridWidth,0,i * smallGridWidth,viewHeight,mBgPaint);
         }
-        isDrawBg = true;
+//        isDrawBg = true;
     }
 
     private void init() {
@@ -214,6 +215,27 @@ public class ECGView extends View {
         path = new Path();
     }
 
+    private float touchX;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                touchX = event.getX();
+                break;
+            case MotionEvent.ACTION_MOVE:
+//                scrollTo((int) (event.getX()-touchX),0);
+//                invalidate(0,0,(int) viewWidth,(int)viewHeight);
+                offsetLeftAndRight((int) (event.getX()-touchX));
+                invalidate(0,0,(int) viewWidth,(int)viewHeight);
+                break;
+            case MotionEvent.ACTION_UP:
+
+                break;
+            default:break;
+        }
+        return true;
+    }
 
     /**
      * 绘制数据
@@ -221,7 +243,7 @@ public class ECGView extends View {
      */
     public void setDatas(List<Integer> datas) {
         this.datas = datas;
-        invalidate();
+        invalidate(0,0,(int) viewWidth,(int)viewHeight);
     }
 }
 
