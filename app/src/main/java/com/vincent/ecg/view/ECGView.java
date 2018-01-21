@@ -10,7 +10,9 @@ import android.graphics.PorterDuffXfermode;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -61,29 +63,27 @@ public class ECGView extends View {
     //ECG path
     private Path path;
     /**
-     * 点的宽度 125个数据 = 5个大格子 = 25个小格子,一个小格子有5个数据
+     * 点的 125个数据 = 5个大格子 = 25个小格子,一个小格子有5个数据
      * dotWidth 表示一个点在X轴的宽度
      */
     private float dotWidth = smallGridWidth/5;
-    //这个的意思是两个大格子表示的值是200  200 = 2个大格子的高度 = 2 * 1个大格子的高度 = 2 * 5 个小格子的高度 一个小格子表示的值为20
-    private float gridValues = 200/2/5;
 
 
     public ECGView(Context context) {
         super(context);
-        init();
+        init(context);
     }
 
 
 
     public ECGView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context);
     }
 
     public ECGView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        init(context);
     }
 
     @Override
@@ -97,19 +97,13 @@ public class ECGView extends View {
         super.onSizeChanged(w, h, oldw, oldh);
     }
 
-//    private boolean isDrawBg = false;
-//    private boolean isDrawBaseLine = false;
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-//        if(!isDrawBg){
-            drawBg(canvas);
-//        }
-//        if(!isDrawBaseLine){
-            //画基准线
-            drawBaseLine(canvas);
-//        }
+        drawBg(canvas);
+        //画基准线
+        drawBaseLine(canvas);
         //画数据
         drawData(canvas);
     }
@@ -120,12 +114,13 @@ public class ECGView extends View {
         path.reset();
         //移动到起点 这里从中部开始画
         path.moveTo(0,baseLine);
-        for (int i = 0;i<datas.size()/5;i++){
+        for (int i = 0;i<datas.size();i++){
             Log.d(TAG, "drawData: "+dotWidth *i+","+valuesToY(datas.get(i)));
             path.lineTo(dotWidth * i,valuesToY(datas.get(i)));
             canvas.drawPath(path,mPaint);
         }
     }
+
 
     /**
      * 这个的意思是两个大格子表示的值是200  200 = 2个大格子的高度 = 2 * 1个大格子的高度 = 2 * 5 个小格子的高度 一个小格子表示的值为20
@@ -146,7 +141,6 @@ public class ECGView extends View {
     private void drawBaseLine(Canvas canvas) {
         //画基线
         canvas.drawLine(0,baseLine,viewWidth,baseLine,mBaseLine);
-//        isDrawBaseLine = true;
     }
 
     /**
@@ -181,10 +175,9 @@ public class ECGView extends View {
             }
             canvas.drawLine(i * smallGridWidth,0,i * smallGridWidth,viewHeight,mBgPaint);
         }
-//        isDrawBg = true;
     }
 
-    private void init() {
+    private void init(Context context) {
         /*初始化背景画笔*/
         mBgPaint = new Paint();
         //抗锯齿
@@ -214,36 +207,14 @@ public class ECGView extends View {
 
         path = new Path();
     }
-
-    private float touchX;
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()){
-            case MotionEvent.ACTION_DOWN:
-                touchX = event.getX();
-                break;
-            case MotionEvent.ACTION_MOVE:
-//                scrollTo((int) (event.getX()-touchX),0);
-//                invalidate(0,0,(int) viewWidth,(int)viewHeight);
-                offsetLeftAndRight((int) (event.getX()-touchX));
-                invalidate(0,0,(int) viewWidth,(int)viewHeight);
-                break;
-            case MotionEvent.ACTION_UP:
-
-                break;
-            default:break;
-        }
-        return true;
-    }
-
     /**
      * 绘制数据
      * @param datas
      */
     public void setDatas(List<Integer> datas) {
         this.datas = datas;
-        invalidate(0,0,(int) viewWidth,(int)viewHeight);
+        invalidate();
     }
+
 }
 
