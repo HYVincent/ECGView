@@ -29,7 +29,7 @@ import java.util.List;
 public class MyDataAll extends View {
 
     private static final String TAG = MyDataAll.class.getSimpleName();
-    private List<Integer> datas = new ArrayList<>();
+    private List<EcgData> datas = new ArrayList<>();
     //心电图画笔
     private Paint mPaint;
     //心电图路径
@@ -156,11 +156,11 @@ public class MyDataAll extends View {
         mPath.reset();
         if(datas != null && datas.size()>0){
             //绘制头部
-            mPath.moveTo(0,change(datas.get(0)));
+            mPath.moveTo(0,change(datas.get(0).getData()));
             //1 s更新125个数据，125个数据占用为5个大格(25个小格)
             //1个小格子为5个数据  1个数据为16/5小格 1小格的宽度为16 1个数据的宽度是16/5
             for (int i = 0;i<datas.size();i++){
-                mPath.lineTo(i * item_width,change(datas.get(i)));
+                mPath.lineTo(i * item_width,change(datas.get(i).getData()));
             }
             canvas.drawPath(mPath,mPaint);
             Log.d(TAG, "drawData: has head");
@@ -181,7 +181,7 @@ public class MyDataAll extends View {
     }
 
 
-    public void addAllData(List<Integer> datas){
+    public void addAllData(List<EcgData> datas){
         this.datas.addAll(datas);
         invalidate();
     }

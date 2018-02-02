@@ -34,7 +34,7 @@ public class ECGView2 extends View {
     //基线的位置
     private float baseLine;
     //ECG datas
-    private List<Integer> datas = new ArrayList<>();
+    private List<EcgData> datas = new ArrayList<>();
 
     //小格子的颜色
     private int bgColor = Color.parseColor("#53bfed");
@@ -201,14 +201,14 @@ public class ECGView2 extends View {
             float nnn = xori + dotWidth * i +  x_changed ;//表示为偏移之后点的X轴坐标
             if (nnn >= 0 ){
                 iXor =  i;
-                path.moveTo(nnn, valuesToY(datas.get(i)));
+                path.moveTo(nnn, valuesToY(datas.get(i).getData()));
                 break;
             }
         }
         for (int i = iXor; i < this.datas.size(); i ++){
             float nnn = xori + dotWidth * i +  x_changed ;
             if (nnn < viewWidth + dotWidth){
-                path.lineTo(xori + dotWidth * i +  x_changed , valuesToY(datas.get(i)));
+                path.lineTo(xori + dotWidth * i +  x_changed , valuesToY(datas.get(i).getData()));
             }
         }
         canvas.drawPath(path,mPaint);
@@ -325,7 +325,7 @@ public class ECGView2 extends View {
      * 绘制数据
      * @param datas
      */
-    public void setDatas(List<Integer> datas) {
+    public void setDatas(List<EcgData> datas) {
         this.datas = datas;
         invalidate();
     }
