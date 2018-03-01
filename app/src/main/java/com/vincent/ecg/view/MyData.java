@@ -199,7 +199,6 @@ public class MyData extends View {
                     if(lastEntity.isRed() != entity.isRed()){
                         //当前颜色值和上一个颜色值不一样
 //                        Log.d(TAG, "drawData: 当前颜色值和上一个颜色值不一样 " + i);
-
                         canvas.drawPath(mPath,mPaint);
                         mPath.reset();
                         mPath.moveTo((i-1) * smailGridWith /dataNumber+headWidth,change(datas.get(i-1).getData()));
@@ -225,13 +224,39 @@ public class MyData extends View {
                 mPath.moveTo(0,change(datas.get(0).getData()));
                 //1 s更新125个数据，125个数据占用为5个大格(25个小格)
                 //1个小格子为5个数据  1个数据为16/5小格 1小格的宽度为16 1个数据的宽度是16/5
-                for (int i = 0;i<datas.size();i++){
+               /* for (int i = 0;i<datas.size();i++){
                     if(datas.get(i).isRed()){
                         mPaint.setColor(mColorData);
                     }else {
                         mPaint.setColor(mColorDataRed);
                     }
                     mPath.lineTo(i * smailGridWith /dataNumber,change(datas.get(i).getData()));
+                }
+                canvas.drawPath(mPath,mPaint);*/
+                for (int i = 1;i<datas.size();i++) {
+                    EcgPointEntity entity = datas.get(i);
+                    EcgPointEntity lastEntity = datas.get(i-1);
+                    if(lastEntity.isRed() != entity.isRed()){
+                        //当前颜色值和上一个颜色值不一样
+//                        Log.d(TAG, "drawData: 当前颜色值和上一个颜色值不一样 " + i);
+                        canvas.drawPath(mPath,mPaint);
+                        mPath.reset();
+                        mPath.moveTo((i-1) * smailGridWith /dataNumber,change(datas.get(i-1).getData()));
+                        mPath.lineTo(i * smailGridWith /dataNumber,change(entity.getData()));
+                        if(entity.isRed()){
+                            mPaint.setColor(mColorDataRed);
+                        }else {
+                            mPaint.setColor(mColorData);
+                        }
+                    }else {
+                        //连续的点，颜色值是一样的，或者都是红色，或者都是蓝色
+                        mPath.lineTo(i * smailGridWith /dataNumber,change(entity.getData()));
+                        if(entity.isRed()){
+                            mPaint.setColor(mColorDataRed);
+                        }else {
+                            mPaint.setColor(mColorData);
+                        }
+                    }
                 }
                 canvas.drawPath(mPath,mPaint);
             }
