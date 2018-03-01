@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 
 
+import com.alibaba.fastjson.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +33,7 @@ public class MyData extends View {
     //正常颜色的数据画笔
     private Paint mPaint;
     //标红数据画笔
-    private Paint mRedPaint;
     private Path mPath;
-    private Path mRedPath;
     private int mColorData = Color.parseColor("#07aef5");
     private int mColorDataRed = Color.parseColor("#FF0000");
     private int view_width;
@@ -154,9 +153,6 @@ public class MyData extends View {
         isDrawHead = drawHead;
     }
 
-    //记录上一个颜色值
-    private boolean isRed = false;
-
     /**
      * 绘制数据
      * @param canvas
@@ -185,6 +181,7 @@ public class MyData extends View {
                         break;
                 }
                 mPath.moveTo(headWidth,change(datas.get(0).getData()));
+                mPath.lineTo(headWidth,change(datas.get(0).getData()));
                 //1 s更新125个数据，125个数据占用为5个大格(25个小格)
                 //1个小格子为5个数据 1小格的宽度为20 1个数据的宽度是20/5
                 /*for (int i = 0;i<datas.size();i++){
@@ -196,26 +193,31 @@ public class MyData extends View {
                     mPath.lineTo(i * smailGridWith /dataNumber+headWidth,change(datas.get(i).getData()));
                 }
                 canvas.drawPath(mPath,mPaint);*/
-                for (int i = 0;i<datas.size();i++){
-                    Log.d(TAG, "drawData: .........."+i+".........."+datas.size());
+                for (int i = 1;i<datas.size();i++) {
                     EcgPointEntity entity = datas.get(i);
-                    if(isRed != entity.isRed() && !isRed){
-                        //当前点和上一个点颜色值不一样 并且当前值为蓝色
-                        Log.d(TAG, "drawData: 当前点和上一个点颜色值不一样 并且当前值为  蓝色 item = "+i +"  datas size is "+ datas.size());
-                    }else if(isRed != entity.isRed() && isRed){
-                        //当前点和上一个点颜色值不一样 并且当前值为红色
-                        Log.d(TAG, "drawData: 当前点和上一个点颜色值不一样 并且当前值为  红色 item = "+i +"  datas size is "+ datas.size());
-                    }
-                    if(entity.isRed()){
-                        isRed = true;
-                        //红色
-                        mPaint.setColor(mColorDataRed);
+                    EcgPointEntity lastEntity = datas.get(i-1);
+                    if(lastEntity.isRed() != entity.isRed()){
+                        //当前颜色值和上一个颜色值不一样
+//                        Log.d(TAG, "drawData: 当前颜色值和上一个颜色值不一样 " + i);
+
+                        canvas.drawPath(mPath,mPaint);
+                        mPath.reset();
+                        mPath.moveTo((i-1) * smailGridWith /dataNumber+headWidth,change(datas.get(i-1).getData()));
+                        mPath.lineTo(i * smailGridWith /dataNumber+headWidth,change(entity.getData()));
+                        if(entity.isRed()){
+                            mPaint.setColor(mColorDataRed);
+                        }else {
+                            mPaint.setColor(mColorData);
+                        }
                     }else {
-                        //不是红色
-                        isRed = false;
-                        mPaint.setColor(mColorData);
+                        //连续的点，颜色值是一样的，或者都是红色，或者都是蓝色
+                        mPath.lineTo(i * smailGridWith /dataNumber+headWidth,change(entity.getData()));
+                        if(entity.isRed()){
+                            mPaint.setColor(mColorDataRed);
+                        }else {
+                            mPaint.setColor(mColorData);
+                        }
                     }
-                    mPath.lineTo(i * smailGridWith /dataNumber+headWidth,change(entity.getData()));
                 }
                 canvas.drawPath(mPath,mPaint);
             }else {
@@ -234,7 +236,6 @@ public class MyData extends View {
                 canvas.drawPath(mPath,mPaint);
             }
         }
-//        isDrawFinish = true;
     }
 
     //头部起点位置 这个值有四个，0,100(smailGridWith * 5),150(smailGridWidth *5* 1.5),175(smailGridWidth * 5 * 1.75)
@@ -375,11 +376,9 @@ public class MyData extends View {
         mPaint = new Paint();
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setAntiAlias(true);
-        mPaint.setColor(mColorData);
         mPaint.setStrokeWidth(line_width);
 
         //标红数据画笔
-        mRedPaint = new Paint();
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setAntiAlias(true);
         mPaint.setColor(mColorDataRed);
@@ -387,9 +386,8 @@ public class MyData extends View {
 
         //心电图路径
         mPath = new Path();
-        //心电图路径 红色
-        mRedPath  = new Path();
         mHeadPath = new Path();
+
         //画心电图
         mHeadPaint = new Paint();
         mHeadPaint.setStyle(Paint.Style.STROKE);

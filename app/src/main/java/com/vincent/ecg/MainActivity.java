@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0;i<strDatas.length;i++){
             EcgPointEntity ecgData = new EcgPointEntity();
             ecgData.setData(Integer.valueOf(strDatas[i].replace("\r","")));
-            if(i % 100 == 0){
+            if(i % 50 == 0){
                 if(isRed){
                     isRed = false;
                 }else {
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
             ecgData.setRed(isRed);
             datas.add(ecgData);
         }
-        Log.d(TAG, "changeData: allDatas size is "+String.valueOf(datas.size()));
+//        Log.d(TAG, "changeData: allDatas size is "+String.valueOf(datas.size()));
     }
 
     private ScheduledExecutorService scheduledExecutorService;
