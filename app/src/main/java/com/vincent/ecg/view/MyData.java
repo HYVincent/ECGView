@@ -29,8 +29,12 @@ public class MyData extends View {
 
     private static final String TAG = MyData.class.getSimpleName();
     private List<EcgPointEntity> datas = new ArrayList<>();
+    //正常颜色的数据画笔
     private Paint mPaint;
+    //标红数据画笔
+    private Paint mRedPaint;
     private Path mPath;
+    private Path mRedPath;
     private int mColorData = Color.parseColor("#07aef5");
     private int mColorDataRed = Color.parseColor("#FF0000");
     private int view_width;
@@ -150,6 +154,9 @@ public class MyData extends View {
         isDrawHead = drawHead;
     }
 
+    //记录上一个颜色值
+    private boolean isRed = false;
+
     /**
      * 绘制数据
      * @param canvas
@@ -179,14 +186,36 @@ public class MyData extends View {
                 }
                 mPath.moveTo(headWidth,change(datas.get(0).getData()));
                 //1 s更新125个数据，125个数据占用为5个大格(25个小格)
-                //1个小格子为5个数据  1个数据为16/5小格 1小格的宽度为16 1个数据的宽度是16/5
-                for (int i = 0;i<datas.size();i++){
+                //1个小格子为5个数据 1小格的宽度为20 1个数据的宽度是20/5
+                /*for (int i = 0;i<datas.size();i++){
                     if(datas.get(i).isRed()){
                         mPaint.setColor(mColorData);
                     }else {
                         mPaint.setColor(mColorDataRed);
                     }
                     mPath.lineTo(i * smailGridWith /dataNumber+headWidth,change(datas.get(i).getData()));
+                }
+                canvas.drawPath(mPath,mPaint);*/
+                for (int i = 0;i<datas.size();i++){
+                    Log.d(TAG, "drawData: .........."+i+".........."+datas.size());
+                    EcgPointEntity entity = datas.get(i);
+                    if(isRed != entity.isRed() && !isRed){
+                        //当前点和上一个点颜色值不一样 并且当前值为蓝色
+                        Log.d(TAG, "drawData: 当前点和上一个点颜色值不一样 并且当前值为  蓝色 item = "+i +"  datas size is "+ datas.size());
+                    }else if(isRed != entity.isRed() && isRed){
+                        //当前点和上一个点颜色值不一样 并且当前值为红色
+                        Log.d(TAG, "drawData: 当前点和上一个点颜色值不一样 并且当前值为  红色 item = "+i +"  datas size is "+ datas.size());
+                    }
+                    if(entity.isRed()){
+                        isRed = true;
+                        //红色
+                        mPaint.setColor(mColorDataRed);
+                    }else {
+                        //不是红色
+                        isRed = false;
+                        mPaint.setColor(mColorData);
+                    }
+                    mPath.lineTo(i * smailGridWith /dataNumber+headWidth,change(entity.getData()));
                 }
                 canvas.drawPath(mPath,mPaint);
             }else {
@@ -212,7 +241,7 @@ public class MyData extends View {
     //这里走速控制
     private float headStart = 0;
     //四个值 5 10 20 30
-    private float addValues = 0;
+    private float addValues = 10;
 
     /**
      * 设置增益 这个值调节Y值 并且影响头部高度
@@ -271,12 +300,13 @@ public class MyData extends View {
      */
     public void addData(EcgPointEntity data){
         maxSize = getMaxSize();
+//        Log.d(TAG, "addData: max size = "+getMaxSize());
+        datas.add(data);
         if(datas.size() > maxSize){
             //如果这个集合大于maxSize（即表示屏幕上所能显示的点的个数）个点，那么就把第一个点移除
 //            Log.d(TAG, "addData: "+maxSize);
             datas.remove(0);
         }
-        datas.add(data);
         if(pause){
             return;
         }
@@ -347,8 +377,18 @@ public class MyData extends View {
         mPaint.setAntiAlias(true);
         mPaint.setColor(mColorData);
         mPaint.setStrokeWidth(line_width);
+
+        //标红数据画笔
+        mRedPaint = new Paint();
+        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setAntiAlias(true);
+        mPaint.setColor(mColorDataRed);
+        mPaint.setStrokeWidth(line_width);
+
         //心电图路径
         mPath = new Path();
+        //心电图路径 红色
+        mRedPath  = new Path();
         mHeadPath = new Path();
         //画心电图
         mHeadPaint = new Paint();

@@ -10,18 +10,21 @@ import com.vincent.ecg.utils.TimeUtils;
 import com.vincent.ecg.view.ECGView;
 import com.vincent.ecg.view.ECGView2;
 import com.vincent.ecg.view.EcgData;
+import com.vincent.ecg.view.EcgPointEntity;
 import com.vincent.ecg.view.MyData;
 import com.vincent.ecg.view.MyDataAll;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
 
-    private List<EcgData> datas = new ArrayList<>();
+    private List<EcgPointEntity> datas = new ArrayList<>();
     private static final String TAG = MainActivity.class.getSimpleName();
-    private ECGView2 ecgView;
-    private MyDataAll myDataAll;
     private MyData myData;
 
     @Override
@@ -29,88 +32,72 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         changeData(ReadAssetsFileUtils.readAssetsTxt(this,"StarCareData"));
-        ecgView = findViewById(R.id.ecg_view);
-        ecgView.setDrawHead(false);
-        ecgView.setDatas(datas);
-        ecgView.setMoveViewListener(new ECGView2.MoveViewListener() {
-            @Override
-            public void soffsetX(float maxOffsetX,float offsetX) {
-                Log.d(TAG, "soffsetX: 最大偏移量 = "+String.valueOf(maxOffsetX)+",当前偏移量 = "+String.valueOf(offsetX));
-                //偏移量比例
-                float ratio = offsetX / maxOffsetX;
-                setMyDataAllOffsetXRatio(ratio);
-            }
-        });
-        myDataAll = findViewById(R.id.data_all);
-        myDataAll.addAllData(datas);
-        myDataAll.setMoveViewListener(new MyDataAll.MoveViewListener() {
-            @Override
-            public void soffsetX(float maxOffsetX, float offsetX) {
-                Log.d(TAG, "soffsetX: 最大偏移量 = "+String.valueOf(maxOffsetX)+",当前偏移量 = "+String.valueOf(offsetX));
-                ecgView.setXChangedRatio(offsetX/maxOffsetX);
-            }
-        });
         myData = findViewById(R.id.mydata);
-        myData.setDrawHead(true);
-        myData.setAddValues(5);
-        findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
+        startTime(-1, 0, 1500/125L, 5, new TimeUtils.TimeListener() {
             @Override
-            public void onClick(View view) {
-                TimeUtils.startTime(-1, 1000, 1000, 10, new TimeUtils.TimeListener() {
+            public void doAction(final int index) {
+//                Log.d(TAG, "doAction: index = "+String.valueOf(index));
+                runOnUiThread(new Runnable() {
                     @Override
-                    public void doAction(int index) {
-                        Log.d(TAG, "doAction: index = "+index);
-                        int mm = index %4;
-                        switch (mm){
-                            case 0:
-                               refresh(5);
-                                break;
-                            case 1:
-                                refresh(10);
-                                break;
-                            case 2:
-                                refresh(20);
-                                break;
-                            case 3:
-                                refresh(30);
-                                break;
-                            default:
-                                break;
+                    public void run() {
+                        if(index > datas.size()-1){
+                            cancelTimeTask();
+                            return;
                         }
+                        myData.addData(datas.get(index));
                     }
                 });
             }
         });
     }
 
-    private void refresh(final float values){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-//                myData.setHeadStart(values);
-                myData.setAddValues(values);
-//                myData.setAddValues(10);
-//                myData.setAddValues(20);
-//                myData.setAddValues(30);
-            }
-        });
-
-    }
-
-    private void setMyDataAllOffsetXRatio(float ratio) {
-        myDataAll.setOffsetXRatio(ratio);
-    }
+    private boolean isRed = false;
 
     private void changeData(String starCareData) {
         String[] strDatas = starCareData.split("\n");
         for (int i = 0;i<strDatas.length;i++){
-            EcgData ecgData = new EcgData();
+            EcgPointEntity ecgData = new EcgPointEntity();
             ecgData.setData(Integer.valueOf(strDatas[i].replace("\r","")));
+            if(i % 100 == 0){
+                if(isRed){
+                    isRed = false;
+                }else {
+                    isRed = true;
+                }
+            }
+            ecgData.setRed(isRed);
             datas.add(ecgData);
         }
         Log.d(TAG, "changeData: allDatas size is "+String.valueOf(datas.size()));
     }
 
+    private ScheduledExecutorService scheduledExecutorService;
+
+    public void startTime(int initValues,long delayTime,long interval,  int threadNum, final TimeUtils.TimeListener timeListener) {
+        try {
+            final AtomicInteger atomicInteger = new AtomicInteger(initValues);
+            if (threadNum == 0) {
+                threadNum = 1;
+            }
+            scheduledExecutorService = new ScheduledThreadPoolExecutor(threadNum);
+            scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    timeListener.doAction(atomicInteger.incrementAndGet());
+//                timeListener.doAction(1);
+                }
+            }, delayTime, interval, TimeUnit.MILLISECONDS);
+        }catch (Exception e){
+
+        }
+    }
+
+
+    public void cancelTimeTask(){
+        if(scheduledExecutorService!= null){
+            scheduledExecutorService.shutdownNow();
+        }
+    }
 
 
 }
