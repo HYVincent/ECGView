@@ -8,8 +8,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.widget.RelativeLayout;
 
 import com.alibaba.fastjson.JSONArray;
+import com.vincent.ecg.utils.ScreenUtils;
 import com.vincent.ecg.view.EcgPointEntity;
 
 import java.util.ArrayList;
@@ -29,9 +31,9 @@ public class TestActivity extends AppCompatActivity {
     private RecyclerView rlv;
     //显示的集合 每页的List
     private List<List<EcgPointEntity>> showDatas = new ArrayList<>();
-    //屏幕上显示的点
-    private int dotNum = 300;
-
+    private float screenWidth = 0f;
+    //屏幕上能显示的最大的点
+    private int screenMaxDotNum=0;
 
     private EcgAdapter adapter;
     private Handler handler = new Handler(){
@@ -52,6 +54,9 @@ public class TestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test);
         rlv = findViewById(R.id.rlv);
         initRecycleView();
+        screenWidth = ScreenUtils.getScreenWidth(this);
+        screenMaxDotNum = (int) (screenWidth-20*5*2)/4;
+        Log.d(TAG, "onCreate: "+screenMaxDotNum);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -67,6 +72,8 @@ public class TestActivity extends AppCompatActivity {
         rlv.setLayoutManager(linearLayoutManager);
         adapter.setData(showDatas);
         rlv.setAdapter(adapter);
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)rlv.getLayoutParams();
+        layoutParams.setMargins(20*5*2,0,0,0);
     }
 
     /**
@@ -81,17 +88,17 @@ public class TestActivity extends AppCompatActivity {
             }
             itemDatas.add(datas.get(i));
         }*/
-       int totalPag = datas.size()/dotNum;
+       int totalPag =  (datas.size()/screenMaxDotNum);
        for (int i= 0;i<totalPag;i++){
            List<EcgPointEntity> aa;
            if(i >0){
-               aa = datas.subList(i * dotNum-1,(i+1) * dotNum);
+               aa = datas.subList(i * screenMaxDotNum-1,(i+1) * screenMaxDotNum);
            }else {
-               aa = datas.subList(i * dotNum, (i + 1) * dotNum);
+               aa = datas.subList(i * screenMaxDotNum, (i + 1) * screenMaxDotNum);
            }
            showDatas.add(aa);
        }
-        showDatas.add(datas.subList(totalPag * dotNum-1,datas.size()-1));
+        showDatas.add(datas.subList(totalPag * screenMaxDotNum-1,datas.size()-1));
 
         Log.d(TAG, "segmentationData: "+showDatas.size());
         Log.d(TAG, "segmentationData: aaaaaaa-->"+ JSONArray.toJSONString(showDatas));

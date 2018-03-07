@@ -5,9 +5,25 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rlv"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="241dp"/>
+        android:layout_height="241dp">
+
+        <com.vincent.ecg.view.ECGViewBgAndHead
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rlv"
+            android:overScrollMode="never"
+            android:layout_width="match_parent"
+            android:layout_height="241dp"/>
+
+
+    </RelativeLayout>
+
+
+
 
 </LinearLayout>

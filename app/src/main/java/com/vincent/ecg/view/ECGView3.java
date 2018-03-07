@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-
 import com.vincent.ecg.utils.DateUtils;
 
 import java.util.ArrayList;
@@ -27,21 +26,35 @@ import java.util.List;
  * @class describe
  * @date 2018/1/19 18:58
  */
-public class ECGView extends View {
+public class ECGView3 extends View {
 
-    private static final String TAG = ECGView.class.getSimpleName();
+    private static final String TAG = ECGView3.class.getSimpleName();
 
     //View宽度
     private float viewWidth;
     //View高度
     private float viewHeight;
-
+    //基线的位置
+    private float baseLine;
     //ECG datas
     private List<EcgPointEntity> datas = new ArrayList<>();
 
     private int mColorData = Color.parseColor("#07aef5");
     private int mColorDataRed = Color.parseColor("#FF0000");
 
+    //小格子的颜色
+    private int bgColor = Color.parseColor("#53bfed");
+    //小格子线条宽度
+    private float bgLineWidth = 0.5f;
+    //纵向有多少条线
+    private int lineNumberZ;
+
+    //基线画笔
+    private Paint mBaseLine;
+    //基线的宽度
+    private float mBaseLineWidth = 4f;
+    //基准线的颜色
+    private int mBaseLineColor = Color.RED;
     //心电图的线的宽度
     private float ecgWidth = 2f;
     //小格子的宽度
@@ -50,6 +63,10 @@ public class ECGView extends View {
     private int gridDotNumber = 5;
     //ECG path
     private Path path;
+    /**
+     * 是否绘制头部 true 绘制  false 不绘制
+     */
+    private boolean isDrawableHead = true;
 
     /**
      * 点的 125个数据 = 5个大格子 = 25个小格子,一个小格子有5个数据
@@ -72,37 +89,47 @@ public class ECGView extends View {
     private Paint mTimePaint;
     //表示屏幕上最多能有多少个点
     private float maxDot = 0.0f;
+    //头部路径
+    private Path mHeadPath;
+    //头部画笔
+    private Paint mHeadPaint;
+    //头部线条宽度
+    private float mHeadLineWidth = 8f;
 
     private MoveViewListener moveViewListener;
 
 
 
-    public ECGView(Context context) {
+    public ECGView3(Context context) {
         super(context);
-        init();
+        init(context);
     }
 
     public void setMoveViewListener(MoveViewListener moveViewListener) {
         this.moveViewListener = moveViewListener;
     }
 
-    public ECGView(Context context, @Nullable AttributeSet attrs) {
+    public ECGView3(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context);
     }
 
-    public ECGView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ECGView3(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        init(context);
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         viewWidth = w;
         viewHeight = h;
+        //基线的位置为View高度的一半
+        baseLine = viewHeight/2;
         xori = 0.0f;
         x_change = 0.0f;
         x_changed = 0.0f;
+        //计算偏移量 因为画背景是先画的基线，然后向两边衍生
+        lineNumberZ = (int)(viewWidth/smallGridWidth);
         offset_x_max = viewWidth - dotWidth * datas.size();
         super.onSizeChanged(w, h, oldw, oldh);
         maxDot = viewWidth/(smallGridWidth/gridDotNumber);
@@ -128,7 +155,38 @@ public class ECGView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        drawBg(canvas);
+        //画基准线
+        drawBaseLine(canvas);
+        //画头部
+        if(isDrawableHead){
+            drawHead(canvas);
+        }
+        //画数据
         drawData(canvas);
+    }
+
+
+    public void setDrawableHead(boolean drawableHead) {
+        isDrawableHead = drawableHead;
+    }
+
+    /**
+     * 画头部
+     * @param canvas
+     */
+    private void drawHead(Canvas canvas) {
+        mHeadPath.moveTo(smallGridWidth*5,viewHeight/2);
+        for (float i = smallGridWidth * 5;i<smallGridWidth * 5 * 2;i++){
+            if(i <= smallGridWidth * 5 + smallGridWidth * 5* 0.25){
+                mHeadPath.lineTo(i,viewHeight/2);
+            }else if(i > smallGridWidth * 5 + smallGridWidth * 5* 0.25 && i<smallGridWidth * 5 + smallGridWidth * 5* 0.75){
+                mHeadPath.lineTo(i,viewHeight/2-smallGridWidth * 5 * 2);
+            }else if( i>smallGridWidth * 5 + smallGridWidth * 5* 0.75 && i<smallGridWidth * 5 * 2){
+                mHeadPath.lineTo(i,viewHeight/2);
+            }
+        }
+        canvas.drawPath(mHeadPath,mHeadPaint);
     }
 
     private Paint mPaint;
@@ -151,8 +209,8 @@ public class ECGView extends View {
             float nnn = xori + dotWidth * i +  x_changed;//表示为偏移之后点的X轴坐标
             if (nnn >= 0 ){
                 iXor = i;
-                path.moveTo(nnn, valuesToY(datas.get(i).getData()));
-                linePath.moveTo(xori + dotWidth * i+x_changed,viewHeight-smallGridWidth * 6);
+                path.moveTo(nnn+smallGridWidth * 5 * 2, valuesToY(datas.get(i).getData()));
+                linePath.moveTo(xori + dotWidth * i+x_changed+smallGridWidth * 5 * 2,viewHeight-smallGridWidth * 6);
                 break;
             }
         }
@@ -165,8 +223,8 @@ public class ECGView extends View {
                     //当前颜色值和上一个颜色值不一样
                     canvas.drawPath(path,mPaint);
                     path.reset();
-                    path.moveTo(xori + dotWidth * (i-1) +  x_changed,valuesToY(datas.get(i-1).getData()));
-                    path.lineTo(xori + dotWidth * (i) +  x_changed,valuesToY(entity.getData()));
+                    path.moveTo(xori + dotWidth * (i-1)+smallGridWidth * 5 * 2 +  x_changed,valuesToY(datas.get(i-1).getData()));
+                    path.lineTo(xori + dotWidth * (i) +  x_changed+smallGridWidth * 5 * 2,valuesToY(entity.getData()));
                     if(entity.isRed()){
                         mPaint.setColor(mColorDataRed);
                     }else {
@@ -174,7 +232,7 @@ public class ECGView extends View {
                     }
                 }else {
                     //连续的点，颜色值是一样的，或者都是红色，或者都是蓝色
-                    path.lineTo(xori + dotWidth * (i) +  x_changed,valuesToY(entity.getData()));
+                    path.lineTo(xori + dotWidth * (i) +  x_changed+smallGridWidth * 5 * 2,valuesToY(entity.getData()));
                     if(entity.isRed()){
                         mPaint.setColor(mColorDataRed);
                     }else {
@@ -182,23 +240,23 @@ public class ECGView extends View {
                     }
                 }
                 //画时间
-                if(entity.getDate().getTime() != lastEntity.getDate().getTime()){
+                if(entity.getDate().getTime() != lastEntity.getDate().getTime()|| i == 1){
                     //两个时间值不一样
-                    linePath.lineTo(xori + dotWidth * i +  x_changed,viewHeight-smallGridWidth * 7);
-                    linePath.lineTo(xori + dotWidth * i +  x_changed,viewHeight-smallGridWidth * 6);
+                    linePath.lineTo(xori + dotWidth * i +  x_changed+smallGridWidth * 5 * 2,viewHeight-smallGridWidth * 7);
+                    linePath.lineTo(xori + dotWidth * i +  x_changed+smallGridWidth * 5 * 2,viewHeight-smallGridWidth * 6);
                     String time = DateUtils.getDateString(DateUtils.DATE_FORMAT_HMS,entity.getDate().getTime());
                     /*Rect rect = new Rect();
                     mTimePaint.getTextBounds(time, 0, time.length(), rect);
                     //文字的宽度
                     int textWidth = rect.width();*/
                     //时间文本的x轴坐标
-                    float textX = xori + dotWidth * i +  x_changed-smallGridWidth * 4;
+                    float textX = xori + dotWidth * i +  x_changed+smallGridWidth * 5 * 2-smallGridWidth * 4;
                     //时间文本的y轴坐标
                     float textY = viewHeight-smallGridWidth * 3;
                     canvas.drawText(time,textX, textY,mTimePaint);
                 }else {
                     //一样的时候
-                    linePath.lineTo(xori + dotWidth * i +  x_changed,viewHeight-smallGridWidth * 6);
+                    linePath.lineTo(xori + dotWidth * i +  x_changed+smallGridWidth * 5 * 2,viewHeight-smallGridWidth * 6);
                 }
                 Log.d(TAG, "drawData: x_changed = "+String.valueOf(x_changed));
             }
@@ -259,14 +317,64 @@ public class ECGView extends View {
      */
     private float valuesToY(Integer data){
 //        return  (-1.0f) * data /(100.0f) * (20.0f) + baseLine;
-        return  data * (-1.0f) + viewHeight/2;
+        return  data * (-1.0f) + baseLine;
     }
 
 
+    /**
+     * 绘制基线
+     * @param canvas
+     */
+    private void drawBaseLine(Canvas canvas) {
+        //画基线
+        canvas.drawLine(0,baseLine,viewWidth,baseLine,mBaseLine);
+    }
 
+    /**
+     * 绘制背景颜色
+     * @param canvas
+     */
+    private void drawBg(Canvas canvas) {
+        /*初始化背景画笔*/
+        Paint mBgPaint = new Paint();
+        //抗锯齿
+        mBgPaint.setAntiAlias(true);
+        /*背景颜色*/
+        mBgPaint.setColor(bgColor);
+        /*宽度*/
+        mBgPaint.setStrokeWidth(bgLineWidth);
 
+        //先画横向的线 画上部分
+        for (float i = baseLine;i>0;i--){
+            if(i % 5 == 0){
+                mBgPaint.setStrokeWidth(bgLineWidth * 2);
+            }else {
+                mBgPaint.setStrokeWidth(bgLineWidth);
+            }
+            canvas.drawLine(0,baseLine - smallGridWidth * i,viewWidth,baseLine - smallGridWidth * i,mBgPaint);
+        }
+        //画下部分
+        for (float i = 0;i<viewHeight;i++){
+            if(i % 5 == 0){
+                mBgPaint.setStrokeWidth(bgLineWidth * 2);
+            }else {
+                mBgPaint.setStrokeWidth(bgLineWidth);
+            }
+            canvas.drawLine(0,baseLine + smallGridWidth * i,viewWidth,baseLine + smallGridWidth * i,mBgPaint);
+        }
+        //画纵向的线 从零开始就可以了
+        for(int i = 0; i<lineNumberZ;i++){
+            if(i % 5 == 0){
+                mBgPaint.setStrokeWidth(bgLineWidth * 2);
+            }else {
+                mBgPaint.setStrokeWidth(bgLineWidth);
+            }
+            canvas.drawLine(i * smallGridWidth,0,i * smallGridWidth,viewHeight,mBgPaint);
+        }
+        canvas.save();
+    }
 
-    private void init() {
+    private void init(Context context) {
 
         //初始化心电图画笔
         mPaint = new Paint();
@@ -277,8 +385,13 @@ public class ECGView extends View {
         //设置样式
         mPaint.setStyle(Paint.Style.STROKE);
 
+        //初始化基线画笔
+        mBaseLine = new Paint();
+        mBaseLine.setStrokeWidth(mBaseLineWidth);
+        mBaseLine.setAntiAlias(true);
+        mBaseLine.setColor(mBaseLineColor);
+        mBaseLine.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         path = new Path();
-
         //这是下面的线
         linePath = new Path();
         //初始化时间文字画笔
@@ -291,10 +404,18 @@ public class ECGView extends View {
 
         mLinePaint = new Paint();
         mLinePaint.setColor(mColorDataRed);
-        mLinePaint.setStrokeWidth(4f);
+        mLinePaint.setStrokeWidth(mBaseLineWidth);
         mLinePaint.setAntiAlias(true);
         mLinePaint.setStyle(Paint.Style.STROKE);
         mLinePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
+
+        mHeadPaint = new Paint();
+        mHeadPaint.setColor(mColorData);
+        mHeadPaint.setStrokeWidth(mHeadLineWidth);
+        mHeadPaint.setStyle(Paint.Style.STROKE);
+        mHeadPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
+
+        mHeadPath = new Path();
     }
     /**
      * 绘制数据
@@ -306,7 +427,7 @@ public class ECGView extends View {
     }
 
     public interface MoveViewListener{
-        void soffsetX(float maxOffsetX,float offsetX);
+        void soffsetX(float maxOffsetX, float offsetX);
     }
 
 }

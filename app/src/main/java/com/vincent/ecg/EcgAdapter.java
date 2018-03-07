@@ -53,10 +53,6 @@ public class EcgAdapter extends RecyclerView.Adapter<EcgAdapter.EcgViewHolder> {
         List<EcgPointEntity> datas = data.get(position);
         Log.d("Item", "onBindViewHolder: "+ JSONArray.toJSONString(datas));
         holder.ecgView.setDatas(datas);
-        if(position != 0){
-            holder.ecgView.setDrawableHead(false);
-        }
-
     }
 
     @Override
