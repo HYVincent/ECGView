@@ -1,5 +1,6 @@
 package com.vincent.ecg;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
 
-    private List<EcgPointEntity> datas = new ArrayList<>();
+    public static List<EcgPointEntity> datas = new ArrayList<>();
     private static final String TAG = MainActivity.class.getSimpleName();
     private ECGView myData;
 
@@ -44,6 +45,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         myData.setDatas(datas);
+        findViewById(R.id.btn_go).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,TestActivity.class));
+            }
+        });
     }
 
     private boolean isRed = false;
