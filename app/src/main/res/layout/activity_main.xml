@@ -6,27 +6,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.vincent.ecg.MainActivity">
-    <RelativeLayout
+
+    <com.vincent.ecg.view.ECGView
+        android:id="@+id/ecgView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.vincent.ecg.view.MyBG
-            android:id="@+id/ecg_view"
-            android:layout_width="match_parent"
-            android:layout_height="300dp" />
-
-        <com.vincent.ecg.view.MyData
-            android:id="@+id/mydata"
-            android:layout_width="match_parent"
-            android:layout_height="300dp" />
-
-
-    </RelativeLayout>
-
-
-    <Button
-        android:id="@+id/btn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="241dp" />
 
 </LinearLayout>

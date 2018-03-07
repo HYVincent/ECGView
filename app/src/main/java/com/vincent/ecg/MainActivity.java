@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import com.alibaba.fastjson.JSONArray;
+import com.vincent.ecg.utils.DateUtils;
 import com.vincent.ecg.utils.ReadAssetsFileUtils;
 import com.vincent.ecg.utils.TimeUtils;
 import com.vincent.ecg.view.ECGView;
@@ -14,7 +16,9 @@ import com.vincent.ecg.view.EcgPointEntity;
 import com.vincent.ecg.view.MyData;
 import com.vincent.ecg.view.MyDataAll;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -25,50 +29,48 @@ public class MainActivity extends AppCompatActivity {
 
     private List<EcgPointEntity> datas = new ArrayList<>();
     private static final String TAG = MainActivity.class.getSimpleName();
-    private MyData myData;
+    private ECGView myData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         changeData(ReadAssetsFileUtils.readAssetsTxt(this,"StarCareData"));
-        myData = findViewById(R.id.mydata);
-        startTime(-1, 0, 1500/125L, 5, new TimeUtils.TimeListener() {
+        myData = findViewById(R.id.ecgView);
+        myData.setMoveViewListener(new ECGView.MoveViewListener() {
             @Override
-            public void doAction(final int index) {
-//                Log.d(TAG, "doAction: index = "+String.valueOf(index));
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(index > datas.size()-1){
-                            cancelTimeTask();
-                            return;
-                        }
-                        myData.addData(datas.get(index));
-                    }
-                });
+            public void soffsetX(float maxOffsetX, float offsetX) {
+
             }
         });
+        myData.setDatas(datas);
     }
 
     private boolean isRed = false;
 
     private void changeData(String starCareData) {
         String[] strDatas = starCareData.split("\n");
+        long time = System.currentTimeMillis();
         for (int i = 0;i<strDatas.length;i++){
             EcgPointEntity ecgData = new EcgPointEntity();
             ecgData.setData(Integer.valueOf(strDatas[i].replace("\r","")));
-            if(i % 50 == 0){
+            if(i % 125 == 0){
                 if(isRed){
                     isRed = false;
                 }else {
                     isRed = true;
                 }
             }
+            if(i % 125 == 0){
+                //变化
+                time += 1000L;
+            }
+            Log.d(TAG, "changeData: time = "+ DateUtils.getDateString(DateUtils.DATE_FORMAT_ALL,time));
+            ecgData.setDate(new Date(time));
             ecgData.setRed(isRed);
             datas.add(ecgData);
         }
-//        Log.d(TAG, "changeData: allDatas size is "+String.valueOf(datas.size()));
+        Log.d(TAG, "changeData: allDatas size is "+ JSONArray.toJSONString(datas));
     }
 
     private ScheduledExecutorService scheduledExecutorService;

@@ -123,8 +123,10 @@ public class MyDataAll extends View {
                 startX = (int)(offset_x);
                 endY = (int)(rectangl_width + getX());
                 endX = startX + rectangl_width;
-                moveViewListener.soffsetX(offset_x_max,offset_x);
-                invalidate();
+                if(moveViewListener != null){
+                    moveViewListener.soffsetX(offset_x_max,offset_x);
+                    invalidate();
+                }
                 break;
             case MotionEvent.ACTION_UP:
                 break;

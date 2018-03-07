@@ -1,5 +1,7 @@
 package com.vincent.ecg.view;
 
+import java.util.Date;
+
 /**
  * @author Vincent QQ:1032006226
  * @version v1.0
@@ -14,6 +16,15 @@ public class EcgPointEntity {
     private long time;
     private Integer data;
     private boolean isRed;
+    private Date date;
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
     public long getTime() {
         return time;

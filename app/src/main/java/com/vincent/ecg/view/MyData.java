@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.View;
 
 
-import com.alibaba.fastjson.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
