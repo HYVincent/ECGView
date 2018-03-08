@@ -55,7 +55,9 @@ public class TestActivity extends AppCompatActivity {
         rlv = findViewById(R.id.rlv);
         initRecycleView();
         screenWidth = ScreenUtils.getScreenWidth(this);
-        screenMaxDotNum = (int) (screenWidth-20*5*2)/4;
+//        screenMaxDotNum = (int) (screenWidth-20*5*2)/4;
+        screenMaxDotNum = 350;
+        screenWidth = screenMaxDotNum * 4;
         Log.d(TAG, "onCreate: "+screenMaxDotNum);
         new Thread(new Runnable() {
             @Override
