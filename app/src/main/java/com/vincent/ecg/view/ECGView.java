@@ -58,13 +58,6 @@ public class ECGView extends View {
     private float dotWidth = smallGridWidth/gridDotNumber;
     //x轴原点坐标
     private float xori;
-    //滑动查看时，x坐标的变化
-    private float x_change ;
-    private float x_changed;
-    //X轴的最大偏移量
-    private float offset_x_max;
-    //手指触碰屏幕的x坐标
-    private float startX;
     //画时间轴的横线
     private Path linePath;
     private Paint mLinePaint;
@@ -73,17 +66,10 @@ public class ECGView extends View {
     //表示屏幕上最多能有多少个点
     private float maxDot = 0.0f;
 
-    private MoveViewListener moveViewListener;
-
-
 
     public ECGView(Context context) {
         super(context);
         init();
-    }
-
-    public void setMoveViewListener(MoveViewListener moveViewListener) {
-        this.moveViewListener = moveViewListener;
     }
 
     public ECGView(Context context, @Nullable AttributeSet attrs) {
@@ -101,9 +87,6 @@ public class ECGView extends View {
         viewWidth = w;
         viewHeight = h;
         xori = 0.0f;
-        x_change = 0.0f;
-        x_changed = 0.0f;
-        offset_x_max = viewWidth - dotWidth * datas.size();
         super.onSizeChanged(w, h, oldw, oldh);
         maxDot = viewWidth/(smallGridWidth/gridDotNumber);
     }
@@ -116,14 +99,6 @@ public class ECGView extends View {
         return maxDot;
     }
 
-    /**
-     * 设置偏移量
-     * @param ratio 这个值并不是一个具体的偏移量的值，而是一个相对于最大偏移量的比例
-     */
-    public void setXChangedRatio(float ratio) {
-        this.x_changed = offset_x_max * ratio;
-        invalidate();
-    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -139,116 +114,52 @@ public class ECGView extends View {
         //清除路径
         path.reset();
         linePath.reset();
-        x_changed += x_change;
-        if (x_changed > xori){//防止向右滑动太多 超左边界
-            x_changed = xori;
-        }else if (x_changed < offset_x_max ){//防止向左滑动太多 超右边界
-            x_changed = offset_x_max;
-        }
         //此处 xori设置为0 ，未用上
-        int iXor = 1;
-        for (int i = 1 ; i < this.datas.size() ; i ++){
-            float nnn = xori + dotWidth * i +  x_changed;//表示为偏移之后点的X轴坐标
-            if (nnn >= 0 ){
-                iXor = i;
-                path.moveTo(nnn, valuesToY(datas.get(i).getData()));
-                linePath.moveTo(xori + dotWidth * i+x_changed,viewHeight-smallGridWidth * 6);
-                break;
-            }
-        }
-        for (int i = iXor; i < this.datas.size(); i ++){
-            float nnn = xori + dotWidth * i +  x_changed;
-            if (nnn < viewWidth + dotWidth){
-                EcgPointEntity entity = datas.get(i);
-                EcgPointEntity lastEntity = datas.get(i-1);
-                if(lastEntity.isRed() != entity.isRed()){
-                    //当前颜色值和上一个颜色值不一样
-                    canvas.drawPath(path,mPaint);
-                    path.reset();
-                    path.moveTo(xori + dotWidth * (i-1) +  x_changed,valuesToY(datas.get(i-1).getData()));
-                    path.lineTo(xori + dotWidth * (i) +  x_changed,valuesToY(entity.getData()));
-                    if(entity.isRed()){
-                        mPaint.setColor(mColorDataRed);
-                    }else {
+        int iXor = 0;
+        path.moveTo(0,valuesToY(datas.get(0).getData()));
+        path.lineTo(0,valuesToY(datas.get(0).getData()));
+
+
+        //不绘制头部
+        path.moveTo(0,valuesToY(datas.get(0).getData()));
+        //1 s更新125个数据，125个数据占用为5个大格(25个小格)
+        //1个小格子为5个数据  1个数据为16/5小格 1小格的宽度为16 1个数据的宽度是16/5
+               /* for (int i = 0;i<datas.size();i++){
+                    if(datas.get(i).isRed()){
                         mPaint.setColor(mColorData);
-                    }
-                }else {
-                    //连续的点，颜色值是一样的，或者都是红色，或者都是蓝色
-                    path.lineTo(xori + dotWidth * (i) +  x_changed,valuesToY(entity.getData()));
-                    if(entity.isRed()){
-                        mPaint.setColor(mColorDataRed);
                     }else {
-                        mPaint.setColor(mColorData);
+                        mPaint.setColor(mColorDataRed);
                     }
+                    mPath.lineTo(i * smailGridWith /dataNumber,change(datas.get(i).getData()));
                 }
-                //画时间
-                if(entity.getDate().getTime() != lastEntity.getDate().getTime()){
-                    //两个时间值不一样
-                    linePath.lineTo(xori + dotWidth * i +  x_changed,viewHeight-smallGridWidth * 7);
-                    linePath.lineTo(xori + dotWidth * i +  x_changed,viewHeight-smallGridWidth * 6);
-                    String time = DateUtils.getDateString(DateUtils.DATE_FORMAT_HMS,entity.getDate().getTime());
-                    /*Rect rect = new Rect();
-                    mTimePaint.getTextBounds(time, 0, time.length(), rect);
-                    //文字的宽度
-                    int textWidth = rect.width();*/
-                    //时间文本的x轴坐标
-                    float textX = xori + dotWidth * i +  x_changed-smallGridWidth * 4;
-                    //时间文本的y轴坐标
-                    float textY = viewHeight-smallGridWidth * 3;
-                    canvas.drawText(time,textX, textY,mTimePaint);
+                canvas.drawPath(mPath,mPaint);*/
+        for (int i = 1;i<datas.size();i++) {
+            EcgPointEntity entity = datas.get(i);
+            EcgPointEntity lastEntity = datas.get(i-1);
+            if(lastEntity.isRed() != entity.isRed()){
+                //当前颜色值和上一个颜色值不一样
+//                        Log.d(TAG, "drawData: 当前颜色值和上一个颜色值不一样 " + i);
+                canvas.drawPath(path,mPaint);
+                path.reset();
+                path.moveTo((i-1) * smallGridWidth /gridDotNumber,valuesToY(datas.get(i-1).getData()));
+                path.lineTo(i * smallGridWidth /gridDotNumber,valuesToY(entity.getData()));
+                if(entity.isRed()){
+                    mPaint.setColor(mColorDataRed);
                 }else {
-                    //一样的时候
-                    linePath.lineTo(xori + dotWidth * i +  x_changed,viewHeight-smallGridWidth * 6);
+                    mPaint.setColor(mColorData);
                 }
-                Log.d(TAG, "drawData: x_changed = "+String.valueOf(x_changed));
+            }else {
+                //连续的点，颜色值是一样的，或者都是红色，或者都是蓝色
+                path.lineTo(i * smallGridWidth /gridDotNumber,valuesToY(entity.getData()));
+                if(entity.isRed()){
+                    mPaint.setColor(mColorDataRed);
+                }else {
+                    mPaint.setColor(mColorData);
+                }
             }
         }
         canvas.drawPath(path,mPaint);
-        canvas.drawPath(linePath,mLinePaint);
     }
-
-    //手指按下的点为(x1,y1)  手指离开屏幕的点为(x2,y2);
-    private float x1 = 0;
-    private float x2 = 0;
-    private float y1 = 0;
-    private float y2 = 0;
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()){
-            case MotionEvent.ACTION_DOWN:
-                startX = event.getX();
-                x1 = event.getX();
-                y1 = event.getY();
-                break;
-            case MotionEvent.ACTION_MOVE:
-                //除以2把滑动速度变慢点
-                x_change = (event.getX() - startX)/10;
-                if(moveViewListener != null){
-                    moveViewListener.soffsetX(offset_x_max,x_changed);
-                    invalidate();
-                }else {
-                    Log.e(TAG, "onTouchEvent:moveViewListener is null. " );
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-                x2 = event.getX();
-                y2 = event.getY();
-                if(y1 - y2 > 50) {
-                    Log.d(TAG, "onTouchEvent: 向上滑");
-                } else if(y2 - y1 > 50) {
-                    Log.d(TAG, "onTouchEvent: 向下滑");
-                } else if(x1 - x2 > 50) {
-                    Log.d(TAG, "onTouchEvent: 向左滑");
-                } else if(x2 - x1 > 50) {
-                    Log.d(TAG, "onTouchEvent: 向右滑");
-                }
-                break;
-            default:break;
-        }
-        return true;
-    }
-
 
 
     /**
@@ -305,9 +216,7 @@ public class ECGView extends View {
         invalidate();
     }
 
-    public interface MoveViewListener{
-        void soffsetX(float maxOffsetX,float offsetX);
-    }
+
 
 }
 

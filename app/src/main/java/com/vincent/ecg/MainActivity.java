@@ -12,6 +12,7 @@ import com.vincent.ecg.utils.ReadAssetsFileUtils;
 import com.vincent.ecg.utils.TimeUtils;
 import com.vincent.ecg.view.ECGView;
 import com.vincent.ecg.view.ECGView2;
+import com.vincent.ecg.view.ECGView3;
 import com.vincent.ecg.view.EcgData;
 import com.vincent.ecg.view.EcgPointEntity;
 import com.vincent.ecg.view.MyData;
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static List<EcgPointEntity> datas = new ArrayList<>();
     private static final String TAG = MainActivity.class.getSimpleName();
-    private ECGView myData;
+    private ECGView3 myData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,13 +39,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         changeData(ReadAssetsFileUtils.readAssetsTxt(this,"StarCareData"));
         myData = findViewById(R.id.ecgView);
-        myData.setMoveViewListener(new ECGView.MoveViewListener() {
+
+        myData.setDatas(datas);
+        myData.setMoveViewListener(new ECGView3.MoveViewListener() {
             @Override
             public void soffsetX(float maxOffsetX, float offsetX) {
 
             }
         });
-        myData.setDatas(datas);
         findViewById(R.id.btn_go).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -72,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 //变化
                 time += 1000L;
             }
-            Log.d(TAG, "changeData: time = "+ DateUtils.getDateString(DateUtils.DATE_FORMAT_ALL,time));
+//            Log.d(TAG, "changeData: time = "+ DateUtils.getDateString(DateUtils.DATE_FORMAT_ALL,time));
             ecgData.setDate(new Date(time));
             ecgData.setRed(isRed);
             datas.add(ecgData);

@@ -258,7 +258,7 @@ public class ECGView3 extends View {
                     //一样的时候
                     linePath.lineTo(xori + dotWidth * i +  x_changed+smallGridWidth * 5 * 2,viewHeight-smallGridWidth * 6);
                 }
-                Log.d(TAG, "drawData: x_changed = "+String.valueOf(x_changed));
+//                Log.d(TAG, "drawData: x_changed = "+String.valueOf(x_changed));
             }
         }
         canvas.drawPath(path,mPaint);

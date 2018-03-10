@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.vincent.ecg.view.ECGView
+    <com.vincent.ecg.view.ECGView3
         android:id="@+id/ecgView"
         android:layout_width="match_parent"
         android:layout_height="241dp" />

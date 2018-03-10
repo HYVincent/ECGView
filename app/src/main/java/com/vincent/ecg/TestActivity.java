@@ -11,8 +11,10 @@ import android.util.Log;
 import android.widget.RelativeLayout;
 
 import com.alibaba.fastjson.JSONArray;
+import com.elvishew.xlog.XLog;
 import com.vincent.ecg.utils.ScreenUtils;
 import com.vincent.ecg.view.EcgPointEntity;
+import com.vincent.mylibrary.view.SpaceItemDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,7 @@ public class TestActivity extends AppCompatActivity {
             switch (msg.what){
                 case 0x11:
                     adapter.setData(showDatas);
+                    XLog.d(JSONArray.toJSONString(showDatas));
                     break;
             }
         }
@@ -54,8 +57,6 @@ public class TestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test);
         rlv = findViewById(R.id.rlv);
         initRecycleView();
-        screenWidth = ScreenUtils.getScreenWidth(this);
-//        screenMaxDotNum = (int) (screenWidth-20*5*2)/4;
         screenMaxDotNum = 350;
         screenWidth = screenMaxDotNum * 4;
         Log.d(TAG, "onCreate: "+screenMaxDotNum);
@@ -71,6 +72,9 @@ public class TestActivity extends AppCompatActivity {
         adapter = new EcgAdapter(this);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+
+        rlv.addItemDecoration(new SpaceItemDecoration(0));
+
         rlv.setLayoutManager(linearLayoutManager);
         adapter.setData(showDatas);
         rlv.setAdapter(adapter);
@@ -83,13 +87,6 @@ public class TestActivity extends AppCompatActivity {
      * @param datas
      */
     private void segmentationData(List<EcgPointEntity> datas) {
-       /* for (int i = 0;i<datas.size();i++){
-            if(i%dotNum == 0 && i!=0){
-                showDatas.add(itemDatas);
-                itemDatas.clear();
-            }
-            itemDatas.add(datas.get(i));
-        }*/
        int totalPag =  (datas.size()/screenMaxDotNum);
        for (int i= 0;i<totalPag;i++){
            List<EcgPointEntity> aa;

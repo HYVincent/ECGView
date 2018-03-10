@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import com.alibaba.fastjson.JSONArray;
 import com.vincent.ecg.view.ECGView;
@@ -44,13 +45,15 @@ public class EcgAdapter extends RecyclerView.Adapter<EcgAdapter.EcgViewHolder> {
         if (mContext == null){
             mContext = parent.getContext();
         }
-        return new EcgViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_layout_ecg,parent,false));
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_layout_ecg,parent,false);
+        return new EcgViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull EcgViewHolder holder, int position) {
-        /*显示的数据*/
         List<EcgPointEntity> datas = data.get(position);
+        //为了数据的连续性 需要把每个item的宽度减去2
+        holder.itemView.getLayoutParams().width = datas.size() * 4-4;
         Log.d("Item", "onBindViewHolder: "+ JSONArray.toJSONString(datas));
         holder.ecgView.setDatas(datas);
     }
